@@ -159,3 +159,34 @@ func (s *Service) Reject(paymentID string) error {
 
 	return nil
 }
+
+func (s *Service) Repeat(paymentID string)(*types.Payment, error){
+	var (
+		targetPayment *types.Payment
+		targetAccount *types.Account
+	)
+
+	for _, payment := range s.payments {
+		if payment.ID == paymentID {
+			targetPayment = payment
+			break
+		}
+	}
+
+	if targetPayment == nil {
+		return nil, ErrPaymentNotFound
+	}
+
+	for _, account := range s.accounts {
+		if account.ID == targetPayment.AccountID {
+			targetAccount = account
+			break
+		}
+	}
+
+	if targetAccount == nil {
+		return nil, ErrAccountNotFound
+	}
+
+	return  s.Pay(targetAccount.ID, targetPayment.Amount, targetPayment.Category)
+}
