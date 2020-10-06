@@ -123,7 +123,7 @@ func (s *Service) FindPaymentByID(paymentID string) (*types.Payment, error) {
 		}
 	}
 
-	return nil, ErrAccountNotFound
+	return nil, ErrPaymentNotFound
 }
 
 func (s *Service) Reject(paymentID string) error {
