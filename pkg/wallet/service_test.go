@@ -125,7 +125,6 @@ func TestService_Reject_fail(t *testing.T) {
 	}
 }
 
-
 func TestService_Repeat_success(t *testing.T) {
 	svc := &Service{}
 
@@ -154,4 +153,73 @@ func TestService_Repeat_success(t *testing.T) {
 		t.Error(err)
 		return
 	}
+}
+
+func TestService_FavoritePayment_success(t *testing.T) {
+	svc := &Service{}
+
+	phone := types.Phone("+992000000000")
+
+	account, err := svc.RegisterAccount(phone)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	err = svc.Deposit(account.ID, 1000)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	pay, err := svc.Pay(account.ID, 500, "auto")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	favorite, err := svc.FavoritePayment(pay.ID, "pay")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	t.Log(favorite)
+}
+
+func TestService_PayFromFavorite_success(t *testing.T) {
+	svc := &Service{}
+
+	phone := types.Phone("+992000000000")
+
+	account, err := svc.RegisterAccount(phone)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	err = svc.Deposit(account.ID, 1000)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	pay, err := svc.Pay(account.ID, 500, "auto")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	favorite, err := svc.FavoritePayment(pay.ID, "pay")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	_, err = svc.PayFromFavorite(favorite.ID)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
 }
