@@ -26,6 +26,7 @@ type Service struct {
 	nextAccountID int64
 	accounts      []*types.Account
 	payments      []*types.Payment
+	favorite      []*types.Favorite
 }
 
 func (s *Service) RegisterAccount(phone types.Phone) (*types.Account, error) {
@@ -127,31 +128,9 @@ func (s *Service) FindPaymentByID(paymentID string) (*types.Payment, error) {
 }
 
 func (s *Service) Reject(paymentID string) error {
-	var (
-		targetPayment *types.Payment
-		targetAccount *types.Account
-	)
-
-	for _, payment := range s.payments {
-		if payment.ID == paymentID {
-			targetPayment = payment
-			break
-		}
-	}
-
-	if targetPayment == nil {
-		return ErrPaymentNotFound
-	}
-
-	for _, account := range s.accounts {
-		if account.ID == targetPayment.AccountID {
-			targetAccount = account
-			break
-		}
-	}
-
-	if targetAccount == nil {
-		return ErrAccountNotFound
+	targetPayment, targetAccount, err := s.findPaymentAndAccountByPaymentID(paymentID)
+	if err != nil {
+		return err
 	}
 
 	targetPayment.Status = types.PaymentStatusFail
@@ -160,7 +139,7 @@ func (s *Service) Reject(paymentID string) error {
 	return nil
 }
 
-func (s *Service) Repeat(paymentID string)(*types.Payment, error){
+func (s *Service) findPaymentAndAccountByPaymentID(paymentID string) (*types.Payment, *types.Account, error) {
 	var (
 		targetPayment *types.Payment
 		targetAccount *types.Account
@@ -174,7 +153,7 @@ func (s *Service) Repeat(paymentID string)(*types.Payment, error){
 	}
 
 	if targetPayment == nil {
-		return nil, ErrPaymentNotFound
+		return nil, nil, ErrPaymentNotFound
 	}
 
 	for _, account := range s.accounts {
@@ -185,8 +164,58 @@ func (s *Service) Repeat(paymentID string)(*types.Payment, error){
 	}
 
 	if targetAccount == nil {
+		return nil, nil, ErrAccountNotFound
+	}
+
+	return targetPayment, targetAccount, nil
+}
+
+func (s *Service) Repeat(paymentID string) (*types.Payment, error) {
+	targetPayment, targetAccount, err := s.findPaymentAndAccountByPaymentID(paymentID)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.Pay(targetAccount.ID, targetPayment.Amount, targetPayment.Category)
+}
+
+func (s *Service) FavoritePayment(paymentID string, name string) (*types.Favorite, error) {
+	targetPayment, targetAccount, err := s.findPaymentAndAccountByPaymentID(paymentID)
+	if err != nil {
+		return nil, err
+	}
+
+	favorite := &types.Favorite{
+		ID:        uuid.New().String(),
+		AccountID: targetAccount.ID,
+		Name:      name,
+		Amount:    targetPayment.Amount,
+		Category:  targetPayment.Category,
+	}
+
+	s.favorite = append(s.favorite, favorite)
+
+	return favorite, nil
+}
+
+func (s *Service) PayFromFavorite(favoriteID string) (*types.Payment, error) {
+	var targetFavorite *types.Favorite
+
+	for _, favorite := range s.favorite {
+		if favorite.ID == favoriteID {
+			targetFavorite = favorite
+			break
+		}
+	}
+
+	if targetFavorite == nil {
 		return nil, ErrAccountNotFound
 	}
 
-	return  s.Pay(targetAccount.ID, targetPayment.Amount, targetPayment.Category)
+	payment, err := s.Pay(targetFavorite.AccountID, targetFavorite.Amount, targetFavorite.Category)
+	if err != nil {
+		return nil, err
+	}
+
+	return payment, nil
 }
