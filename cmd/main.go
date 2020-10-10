@@ -1,28 +1,31 @@
 package main
 
 import (
-	"fmt"
+	"log"
+
 	"github.com/shuhrat-shokirov/wallet/pkg/wallet"
 )
 
-func main(){
-	svc := &wallet.Service{}
-	account, err := svc.RegisterAccount("+992000000000")
-	if err != nil{
-		fmt.Println(err)
+func main() {
+	s := wallet.Service{}
+
+	// _, err := s.RegisterAccount("+992935626274")
+	// if err != nil {
+	// 	log.Println(err)
+	// 	return
+	// }
+
+	// err = s.ExportToFile("1.txt")
+	// if err != nil {
+	// 	log.Println(err)
+	// 	return
+	// }
+
+	err := s.ImportFromFile("1.txt")
+	if err != nil {
+		log.Println(err)
 		return
 	}
 
-	err = svc.Deposit(account.ID, 10)
-	if err != nil{
-		switch err{
-		case wallet.ErrAmountMustBePositive:
-			fmt.Println("Сумма должна быть полажительной")
-		case wallet.ErrAccountNotFound:
-			fmt.Println("Аккаунт пользователя не найдено")
-		}
-		return
-	}
-
-	fmt.Println(account.Balance)
+	log.Println(s.FindAccountByID(1))
 }
