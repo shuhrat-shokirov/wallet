@@ -258,25 +258,6 @@ func (s *Service) ExportToFile(path string) error {
 }
 
 func (s *Service) ImportFromFile(path string) error {
-	// file, err := os.Open(path)
-	// if err != nil {
-	// 	log.Println(err)
-	// 	return err
-	// }
-
-	// defer func() {
-	// 	err = file.Close()
-	// 	if err != nil {
-	// 		log.Println(err)
-	// 	}
-	// }()
-
-	// read, err := file.Read([]byte{})
-	// if err != nil {
-	// 	log.Println(err)
-	// 	return ErrFileNotFound
-	// }
-
 	byteData, err := ioutil.ReadFile(path)
 	if err != nil {
 		log.Println(err)
