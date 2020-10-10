@@ -240,9 +240,9 @@ func (s *Service) ExportToFile(path string) error {
 
 	result := ""
 	for _, account := range s.accounts {
-		result += strconv.Itoa(int(account.ID)) + "|"
-		result += string(account.Phone) + "|"
-		result += strconv.Itoa(int(account.Balance)) + ";"
+		result += strconv.Itoa(int(account.ID)) + ";"
+		result += string(account.Phone) + ";"
+		result += strconv.Itoa(int(account.Balance)) + "|"
 	}
 
 	_, err = file.Write([]byte(result))
