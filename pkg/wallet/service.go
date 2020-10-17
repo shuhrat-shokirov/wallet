@@ -33,7 +33,7 @@ type Service struct {
 	nextAccountID int64
 	accounts      []*types.Account
 	payments      []*types.Payment
-	favorite      []*types.Favorite
+	favorites      []*types.Favorite
 }
 
 func (s *Service) RegisterAccount(phone types.Phone) (*types.Account, error) {
@@ -200,7 +200,7 @@ func (s *Service) FavoritePayment(paymentID string, name string) (*types.Favorit
 		Category:  targetPayment.Category,
 	}
 
-	s.favorite = append(s.favorite, favorite)
+	s.favorites = append(s.favorites, favorite)
 
 	return favorite, nil
 }
@@ -208,7 +208,7 @@ func (s *Service) FavoritePayment(paymentID string, name string) (*types.Favorit
 func (s *Service) PayFromFavorite(favoriteID string) (*types.Payment, error) {
 	var targetFavorite *types.Favorite
 
-	for _, favorite := range s.favorite {
+	for _, favorite := range s.favorites {
 		if favorite.ID == favoriteID {
 			targetFavorite = favorite
 			break
@@ -295,4 +295,76 @@ func (s *Service) ImportFromFile(path string) error {
 
 	return nil
 
+}
+
+func (s *Service) Export(dir string) error {
+
+	if len(s.accounts) != 0 {
+		result := ""
+		for _, account := range s.accounts {
+			result += strconv.Itoa(int(account.ID)) + ";"
+			result += string(account.Phone) + ";"
+			result += strconv.Itoa(int(account.Balance)) + ";\n"
+		}
+
+		err := actionByFile(dir+"/accounts.dump", result)
+		if err != nil {
+			return err
+		}
+
+	}
+
+	if len(s.payments) != 0 {
+		result := ""
+
+		for _, payment := range s.payments {
+			result += payment.ID + ";"
+			result += strconv.Itoa(int(payment.AccountID)) + ";"
+			result += strconv.Itoa(int(payment.Amount)) + ";"
+			result += string(payment.Category) + ";"
+			result += string(payment.Status) + ";\n"
+		}
+
+		err := actionByFile(dir+"/payments.dump", result)
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(s.favorites) == 0{
+		result := ""
+
+		for _, favorite := range s.favorites{
+			result += favorite.ID + ";"
+			result += strconv.Itoa(int(favorite.AccountID)) + ";"
+			result += favorite.Name + ";"
+			result += strconv.Itoa(int(favorite.Amount)) + ";"
+			result += string(favorite.Category) + ";"
+		}
+
+		err :=actionByFile(dir + "/favorites.dump", result)
+		if err != nil{
+			return err
+		}
+	}
+
+	return nil
+}
+
+func actionByFile(path, data string) error {
+	file, err := os.Create(path)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	defer file.Close()
+
+	_, err = file.WriteString(data)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	return nil
 }
