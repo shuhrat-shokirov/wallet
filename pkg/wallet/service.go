@@ -33,7 +33,7 @@ type Service struct {
 	nextAccountID int64
 	accounts      []*types.Account
 	payments      []*types.Payment
-	favorites      []*types.Favorite
+	favorites     []*types.Favorite
 }
 
 func (s *Service) RegisterAccount(phone types.Phone) (*types.Account, error) {
@@ -228,19 +228,6 @@ func (s *Service) PayFromFavorite(favoriteID string) (*types.Payment, error) {
 }
 
 func (s *Service) ExportToFile(path string) error {
-	file, err := os.Create(path)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-
-	defer func() {
-		err = file.Close()
-		if err != nil {
-			log.Println(err)
-		}
-	}()
-
 	result := ""
 	for _, account := range s.accounts {
 		result += strconv.Itoa(int(account.ID)) + ";"
@@ -248,9 +235,8 @@ func (s *Service) ExportToFile(path string) error {
 		result += strconv.Itoa(int(account.Balance)) + "|"
 	}
 
-	_, err = file.Write([]byte(result))
+	err := actionByFile(path, result)
 	if err != nil {
-		log.Println(err)
 		return err
 	}
 
@@ -294,12 +280,10 @@ func (s *Service) ImportFromFile(path string) error {
 	}
 
 	return nil
-
 }
 
 func (s *Service) Export(dir string) error {
-
-	if len(s.accounts) != 0 {
+	if s.accounts != nil {
 		result := ""
 		for _, account := range s.accounts {
 			result += strconv.Itoa(int(account.ID)) + ";"
@@ -311,12 +295,10 @@ func (s *Service) Export(dir string) error {
 		if err != nil {
 			return err
 		}
-
 	}
 
-	if len(s.payments) != 0 {
+	if s.payments != nil {
 		result := ""
-
 		for _, payment := range s.payments {
 			result += payment.ID + ";"
 			result += strconv.Itoa(int(payment.AccountID)) + ";"
@@ -331,10 +313,9 @@ func (s *Service) Export(dir string) error {
 		}
 	}
 
-	if len(s.favorites) == 0{
+	if s.favorites != nil {
 		result := ""
-
-		for _, favorite := range s.favorites{
+		for _, favorite := range s.favorites {
 			result += favorite.ID + ";"
 			result += strconv.Itoa(int(favorite.AccountID)) + ";"
 			result += favorite.Name + ";"
@@ -342,8 +323,8 @@ func (s *Service) Export(dir string) error {
 			result += string(favorite.Category) + ";"
 		}
 
-		err :=actionByFile(dir + "/favorites.dump", result)
-		if err != nil{
+		err := actionByFile(dir+"/favorites.dump", result)
+		if err != nil {
 			return err
 		}
 	}
@@ -358,7 +339,12 @@ func actionByFile(path, data string) error {
 		return err
 	}
 
-	defer file.Close()
+	defer func() {
+		err = file.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}()
 
 	_, err = file.WriteString(data)
 	if err != nil {
