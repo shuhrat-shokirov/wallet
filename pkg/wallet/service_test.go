@@ -564,8 +564,6 @@ func TestService_HistoryToFile(t *testing.T) {
 	}
 
 	fileFunc(10, t)
-
-
 }
 
 func fileFunc(l int, t *testing.T) {
