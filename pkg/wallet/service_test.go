@@ -445,3 +445,92 @@ func TestService_Import_IfHaveData(t *testing.T) {
 		t.Error("incorrect func")
 	}
 }
+
+func TestService_HistoryToFile(t *testing.T){
+	svc := &Service{}
+
+	payments := []types.Payment{
+		{
+			ID: "1",
+			AccountID: 1,
+			Amount: 10,
+			Category: "auto",
+			Status: "active",
+		},
+		{
+			ID: "2",
+			AccountID: 1,
+			Amount: 10,
+			Category: "auto",
+			Status: "active",
+		},
+		{
+			ID: "3",
+			AccountID: 1,
+			Amount: 10,
+			Category: "auto",
+			Status: "active",
+		},
+		{
+			ID: "4",
+			AccountID: 1,
+			Amount: 10,
+			Category: "auto",
+			Status: "active",
+		},
+		{
+			ID: "5",
+			AccountID: 1,
+			Amount: 10,
+			Category: "auto",
+			Status: "active",
+		},
+		{
+			ID: "6",
+			AccountID: 1,
+			Amount: 10,
+			Category: "auto",
+			Status: "active",
+		},
+		{
+			ID: "7",
+			AccountID: 1,
+			Amount: 10,
+			Category: "auto",
+			Status: "active",
+		},
+		{
+			ID: "8",
+			AccountID: 1,
+			Amount: 10,
+			Category: "auto",
+			Status: "active",
+		},
+		{
+			ID: "9",
+			AccountID: 1,
+			Amount: 10,
+			Category: "auto",
+			Status: "active",
+		},
+		{
+			ID: "10",
+			AccountID: 1,
+			Amount: 10,
+			Category: "auto",
+			Status: "active",
+		},
+	}
+
+	err := svc.HistoryToFiles(payments, "./test/", 3)
+	if err != nil {
+		t.Error(err)
+	}
+
+	file, err := ioutil.ReadDir("./test")
+	if err != nil {
+		t.Error(err)
+	}
+
+	t.Log(len(file))
+}

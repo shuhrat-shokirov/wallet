@@ -557,7 +557,7 @@ func (s *Service) HistoryToFiles(payments []types.Payment, dir string, records i
 		result += string(payment.Category) + ";"
 		result += string(payment.Status) + "\n"
 
-		if i%records == 0 {
+		if (i+1)%records == 0 {
 			err := actionByFile(dir+"payments"+strconv.Itoa(i/records+1)+".dump", result)
 			if err != nil {
 				return err
