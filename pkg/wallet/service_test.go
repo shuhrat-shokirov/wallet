@@ -527,28 +527,24 @@ func TestService_HistoryToFile(t *testing.T) {
 		t.Error(err)
 	}
 
-	fileFunc(4, t)
 
 	err = svc.HistoryToFiles(payments, "./test", 4)
 	if err != nil {
 		t.Error(err)
 	}
 
-	fileFunc(3, t)
 
 	err = svc.HistoryToFiles(payments, "./test", 5)
 	if err != nil {
 		t.Error(err)
 	}
 
-	fileFunc(2, t)
 
 	err = svc.HistoryToFiles(payments, "./test", 10)
 	if err != nil {
 		t.Error(err)
 	}
 
-	fileFunc(1, t)
 
 
 	err = svc.HistoryToFiles(payments, "./test", 11)
@@ -556,14 +552,11 @@ func TestService_HistoryToFile(t *testing.T) {
 		t.Error(err)
 	}
 
-	fileFunc(1, t)
-
 	err = svc.HistoryToFiles(payments, "./test", 1)
 	if err != nil {
 		t.Error(err)
 	}
 
-	fileFunc(10, t)
 }
 
 func fileFunc(l int, t *testing.T) {
