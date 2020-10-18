@@ -535,7 +535,7 @@ func (s *Service) HistoryToFiles(payments []types.Payment, dir string, records i
 
 	if len(payments) < records {
 		result := ""
-		for _, payment := range s.payments {
+		for _, payment := range payments {
 			result += payment.ID + ";"
 			result += strconv.Itoa(int(payment.AccountID)) + ";"
 			result += strconv.Itoa(int(payment.Amount)) + ";"
@@ -547,6 +547,8 @@ func (s *Service) HistoryToFiles(payments []types.Payment, dir string, records i
 		if err != nil {
 			return err
 		}
+
+		return nil
 	}
 
 	result := ""
@@ -558,7 +560,7 @@ func (s *Service) HistoryToFiles(payments []types.Payment, dir string, records i
 		result += string(payment.Status) + "\n"
 
 		if (i+1)%records == 0 {
-			err := actionByFile(dir+"payments"+strconv.Itoa(i/records+1)+".dump", result)
+			err := actionByFile(dir+"payments"+strconv.Itoa((i+1)/records)+".dump", result)
 			if err != nil {
 				return err
 			}
@@ -567,7 +569,7 @@ func (s *Service) HistoryToFiles(payments []types.Payment, dir string, records i
 	}
 
 	if result != "" {
-		err := actionByFile(dir+"payments"+strconv.Itoa(len(payments)/records+2)+".dump", result)
+		err := actionByFile(dir+"payments"+strconv.Itoa(len(payments)/records+1)+".dump", result)
 		if err != nil {
 			return err
 		}

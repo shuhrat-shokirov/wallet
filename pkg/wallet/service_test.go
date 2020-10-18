@@ -446,79 +446,79 @@ func TestService_Import_IfHaveData(t *testing.T) {
 	}
 }
 
-func TestService_HistoryToFile(t *testing.T){
+func TestService_HistoryToFile(t *testing.T) {
 	svc := &Service{}
 
 	payments := []types.Payment{
 		{
-			ID: "1",
+			ID:        "1",
 			AccountID: 1,
-			Amount: 10,
-			Category: "auto",
-			Status: "active",
+			Amount:    10,
+			Category:  "auto",
+			Status:    "active",
 		},
 		{
-			ID: "2",
+			ID:        "2",
 			AccountID: 1,
-			Amount: 10,
-			Category: "auto",
-			Status: "active",
+			Amount:    10,
+			Category:  "auto",
+			Status:    "active",
 		},
 		{
-			ID: "3",
+			ID:        "3",
 			AccountID: 1,
-			Amount: 10,
-			Category: "auto",
-			Status: "active",
+			Amount:    10,
+			Category:  "auto",
+			Status:    "active",
 		},
 		{
-			ID: "4",
+			ID:        "4",
 			AccountID: 1,
-			Amount: 10,
-			Category: "auto",
-			Status: "active",
+			Amount:    10,
+			Category:  "auto",
+			Status:    "active",
 		},
 		{
-			ID: "5",
+			ID:        "5",
 			AccountID: 1,
-			Amount: 10,
-			Category: "auto",
-			Status: "active",
+			Amount:    10,
+			Category:  "auto",
+			Status:    "active",
 		},
 		{
-			ID: "6",
+			ID:        "6",
 			AccountID: 1,
-			Amount: 10,
-			Category: "auto",
-			Status: "active",
+			Amount:    10,
+			Category:  "auto",
+			Status:    "active",
 		},
 		{
-			ID: "7",
+			ID:        "7",
 			AccountID: 1,
-			Amount: 10,
-			Category: "auto",
-			Status: "active",
+			Amount:    10,
+			Category:  "auto",
+			Status:    "active",
 		},
 		{
-			ID: "8",
+			ID:        "8",
 			AccountID: 1,
-			Amount: 10,
-			Category: "auto",
-			Status: "active",
+			Amount:    10,
+			Category:  "auto",
+			Status:    "active",
 		},
 		{
-			ID: "9",
+			ID:        "9",
 			AccountID: 1,
-			Amount: 10,
-			Category: "auto",
-			Status: "active",
+			Amount:    10,
+			Category:  "auto",
+			Status:    "active",
 		},
 		{
-			ID: "10",
+			ID:        "10",
 			AccountID: 1,
-			Amount: 10,
-			Category: "auto",
-			Status: "active",
+			Amount:    10,
+			Category:  "auto",
+			Status:    "active",
 		},
 	}
 
@@ -527,10 +527,54 @@ func TestService_HistoryToFile(t *testing.T){
 		t.Error(err)
 	}
 
-	file, err := ioutil.ReadDir("./test")
+	fileFunc(4, t)
+
+	err = svc.HistoryToFiles(payments, "./test/", 4)
 	if err != nil {
 		t.Error(err)
 	}
 
-	t.Log(len(file))
+	fileFunc(3, t)
+
+	err = svc.HistoryToFiles(payments, "./test/", 5)
+	if err != nil {
+		t.Error(err)
+	}
+
+	fileFunc(2, t)
+
+	err = svc.HistoryToFiles(payments, "./test/", 10)
+	if err != nil {
+		t.Error(err)
+	}
+
+	fileFunc(1, t)
+
+
+	err = svc.HistoryToFiles(payments, "./test/", 11)
+	if err != nil {
+		t.Error(err)
+	}
+
+	fileFunc(1, t)
+
+
+}
+
+func fileFunc(l int, t *testing.T) {
+	files, err := ioutil.ReadDir("./test")
+	if err != nil {
+		t.Error(err)
+	}
+
+	if len(files) != l {
+		t.Error("incorrect")
+	}
+
+	for _, file := range files {
+		err = os.Remove("test/" + file.Name())
+		if err != nil {
+			t.Error(err)
+		}
+	}
 }
