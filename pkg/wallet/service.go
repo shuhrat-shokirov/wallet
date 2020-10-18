@@ -533,7 +533,7 @@ func (s *Service) HistoryToFiles(payments []types.Payment, dir string, records i
 		return nil
 	}
 
-	if len(payments) < records {
+	if len(payments) <= records {
 		result := ""
 		for _, payment := range payments {
 			result += payment.ID + ";"

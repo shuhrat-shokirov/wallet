@@ -558,6 +558,13 @@ func TestService_HistoryToFile(t *testing.T) {
 
 	fileFunc(1, t)
 
+	err = svc.HistoryToFiles(payments, "./test/", 1)
+	if err != nil {
+		t.Error(err)
+	}
+
+	fileFunc(10, t)
+
 
 }
 
