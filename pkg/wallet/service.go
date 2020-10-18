@@ -533,6 +533,8 @@ func (s *Service) HistoryToFiles(payments []types.Payment, dir string, records i
 		return nil
 	}
 
+	log.Printf("payments = %v \n dir = %v \n records = %v", payments, dir, records)
+
 	if len(payments) <= records {
 		result := ""
 		for _, payment := range payments {
