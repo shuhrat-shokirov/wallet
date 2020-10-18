@@ -343,27 +343,27 @@ func TestService_ExportToFile(t *testing.T) {
 	}
 }
 
-func TestService_ImportToFile(t *testing.T){
+func TestService_ImportToFile(t *testing.T) {
 	svc := &Service{}
 
 	err := svc.ImportFromFile("1.txt")
 	if err != nil {
 		t.Error(err)
 	}
-	
-	k:=0
-	for _, account := range svc.accounts{
-		if(account.Phone == "+992000000000"){
+
+	k := 0
+	for _, account := range svc.accounts {
+		if account.Phone == "+992000000000" {
 			k++
 		}
 	}
 
-	if k<=0{
+	if k <= 0 {
 		t.Error("incorrect func")
 	}
 }
 
-func TestSetice_Export(t *testing.T){
+func TestSetice_Export(t *testing.T) {
 	svc := &Service{}
 
 	account, err := svc.RegisterAccount("+992000000000")
@@ -373,7 +373,7 @@ func TestSetice_Export(t *testing.T){
 
 	account.Balance = 100
 
-	payment,err := svc.Pay(account.ID, 100, "auto")
+	payment, err := svc.Pay(account.ID, 100, "auto")
 	if err != nil {
 		t.Error(err)
 	}
@@ -392,7 +392,7 @@ func TestSetice_Export(t *testing.T){
 	if err != nil {
 		t.Error(err)
 	}
-	
+
 	_, err = ioutil.ReadFile("payments.dump")
 	if err != nil {
 		t.Error(err)
@@ -404,7 +404,7 @@ func TestSetice_Export(t *testing.T){
 	}
 }
 
-func TestService_Import(t *testing.T){
+func TestService_Import(t *testing.T) {
 	svc := &Service{}
 
 	err := svc.Import(".")
@@ -412,11 +412,11 @@ func TestService_Import(t *testing.T){
 		t.Error(err)
 	}
 
-	if svc.accounts[0].Phone != "+992000000000"{
+	if svc.accounts[0].Phone != "+992000000000" {
 		t.Error("incorrect func")
 	}
 }
-func TestService_Import_IfHaveData(t *testing.T){
+func TestService_Import_IfHaveData(t *testing.T) {
 	svc := &Service{}
 
 	account, err := svc.RegisterAccount("+992000000000")
@@ -426,7 +426,7 @@ func TestService_Import_IfHaveData(t *testing.T){
 
 	account.Balance = 100
 
-	payment,err := svc.Pay(account.ID, 100, "auto")
+	payment, err := svc.Pay(account.ID, 100, "auto")
 	if err != nil {
 		t.Error(err)
 	}
@@ -441,7 +441,7 @@ func TestService_Import_IfHaveData(t *testing.T){
 		t.Error(err)
 	}
 
-	if account.Phone == "+992"{
+	if account.Phone == "+992" {
 		t.Error("incorrect func")
 	}
 }

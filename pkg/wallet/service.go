@@ -505,3 +505,73 @@ func actionByFile(path, data string) error {
 
 	return nil
 }
+
+func (s *Service) ExportAccountHistory(accountID int64) (payments []types.Payment, err error) {
+	_, err = s.FindAccountByID(accountID)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	for _, payment := range s.payments {
+		if payment.AccountID == accountID {
+			payments = append(payments, *payment)
+		}
+	}
+
+	if len(payments) == 0 {
+		log.Println("empty payment")
+		return nil, ErrPaymentNotFound
+	}
+
+	return payments, nil
+}
+
+func (s *Service) HistoryToFiles(payments []types.Payment, dir string, records int) error {
+	if len(payments) == 0 {
+		log.Print(ErrPaymentNotFound)
+		return nil
+	}
+
+	if len(payments) < records {
+		result := ""
+		for _, payment := range s.payments {
+			result += payment.ID + ";"
+			result += strconv.Itoa(int(payment.AccountID)) + ";"
+			result += strconv.Itoa(int(payment.Amount)) + ";"
+			result += string(payment.Category) + ";"
+			result += string(payment.Status) + "\n"
+		}
+
+		err := actionByFile(dir+"/payments.dump", result)
+		if err != nil {
+			return err
+		}
+	}
+
+	result := ""
+	for i, payment := range payments {
+		result += payment.ID + ";"
+		result += strconv.Itoa(int(payment.AccountID)) + ";"
+		result += strconv.Itoa(int(payment.Amount)) + ";"
+		result += string(payment.Category) + ";"
+		result += string(payment.Status) + "\n"
+
+		if i%records == 0 {
+			err := actionByFile(dir+"payments"+strconv.Itoa(i/records+1)+".dump", result)
+			if err != nil {
+				return err
+			}
+			result = ""
+		}
+	}
+
+	if result != "" {
+		err := actionByFile(dir+"payments"+strconv.Itoa(len(payments)/records+2)+".dump", result)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
