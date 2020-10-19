@@ -661,3 +661,45 @@ func (s *Service) FilterPayments(accountID int64, goroutines int) (payments []ty
 
 	return payments, nil
 }
+
+func (s *Service) FilterPaymentsByFn(filter func(payment types.Payment) bool, goroutines int) (payments []types.Payment, err error) {
+	wg := sync.WaitGroup{}
+	mu := sync.Mutex{}
+
+	count := len(s.payments)/goroutines + 1
+
+	for i := 0; i < goroutines; i++ {
+		wg.Add(1)
+
+		go func(val int) {
+			defer wg.Done()
+			var result []types.Payment
+
+			for j := val * count; j < (val+1)*count; j++ {
+				if j >= len(s.payments) {
+					j = (val + 1) * count
+					break
+				}
+
+				payment := types.Payment{
+					ID:        s.payments[j].ID,
+					AccountID: s.payments[j].AccountID,
+					Amount:    s.payments[j].Amount,
+					Category:  s.payments[j].Category,
+					Status:    s.payments[j].Status,
+				}
+
+				if filter(payment) {
+					result = append(result, payment)
+				}
+			}
+			mu.Lock()
+			payments = append(payments, result...)
+			mu.Unlock()
+		}(i)
+
+		wg.Wait()
+	}
+
+	return payments, nil
+}
