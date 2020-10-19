@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/google/uuid"
 
@@ -533,7 +534,7 @@ func (s *Service) HistoryToFiles(payments []types.Payment, dir string, records i
 		return nil
 	}
 
-	log.Printf("payments = %v \n dir = %v \n records = %v", payments, dir, records)
+	//log.Printf("payments = %v \n dir = %v \n records = %v", payments, dir, records)
 
 	if len(payments) <= records {
 		result := ""
@@ -580,4 +581,35 @@ func (s *Service) HistoryToFiles(payments []types.Payment, dir string, records i
 	}
 
 	return nil
+}
+
+func (s *Service) SumPayments(goroutines int) (sum types.Money) {
+	wg := sync.WaitGroup{}
+	mu := sync.Mutex{}
+
+	count := len(s.payments)/goroutines + 1
+
+	for i := 0; i < goroutines; i++ {
+		wg.Add(1)
+
+		go func(val int) {
+			defer wg.Done()
+			var value types.Money
+
+			for j := val * count; j < (val+1)*count; j++ {
+				if j >= len(s.payments) {
+					j = (val+1)*count
+					break
+				}
+				value += s.payments[j].Amount
+			}
+			mu.Lock()
+			sum += value
+			mu.Unlock()
+		}(i)
+
+		wg.Wait()
+	}
+
+	return sum
 }
