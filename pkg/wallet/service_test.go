@@ -1,6 +1,7 @@
 package wallet
 
 import (
+	"github.com/google/uuid"
 	"io/ioutil"
 	"os"
 	"reflect"
@@ -637,15 +638,15 @@ func Benchmark_FilterPaymentsByFn(b *testing.B) {
 	result := 103
 
 	for i := 0; i < b.N; i++ {
-		payments, err := svc.FilterPaymentsByFn(
-			func(payment types.Payment) bool {
-				if payment.Amount == 1 {
-					return true
-				}
+		f := func(payment types.Payment) bool {
+			if payment.Amount == 1 {
+				return true
+			}
 
-				return false
-			},
-			result)
+			return false
+		}
+		
+		payments, err := svc.FilterPaymentsByFn(f, result)
 		if err != nil {
 			b.Error(err)
 		}
@@ -654,4 +655,18 @@ func Benchmark_FilterPaymentsByFn(b *testing.B) {
 			b.Fatalf("invalid result, got %v, want %v", len(payments), result)
 		}
 	}
+}
+
+func TestService_SumPaymentsWithProgress(t *testing.T) {
+	svc := &Service{}
+	for i := 0; i < 200_000; i++ {
+		payment := &types.Payment{
+			ID:     uuid.New().String(),
+			Amount: types.Money(100),
+		}
+		svc.payments = append(svc.payments, payment)
+	}
+
+	svc.SumPaymentsWithProgress()
+	
 }
