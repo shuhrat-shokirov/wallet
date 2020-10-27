@@ -583,126 +583,155 @@ func (s *Service) HistoryToFiles(payments []types.Payment, dir string, records i
 	return nil
 }
 
-func (s *Service) SumPayments(goroutines int) (sum types.Money) {
+func (s *Service) SumPayments(goroutines int) types.Money {
 	wg := sync.WaitGroup{}
 	mu := sync.Mutex{}
-
-	count := len(s.payments)/goroutines + 1
-
-	for i := 0; i < goroutines; i++ {
+	var summ types.Money = 0
+	if goroutines == 0 || goroutines == 1 {
 		wg.Add(1)
-
-		go func(val int) {
+		go func(payments []*types.Payment) {
 			defer wg.Done()
-			var value types.Money
-
-			for j := val * count; j < (val+1)*count; j++ {
-				if j >= len(s.payments) {
-					j = (val + 1) * count
-					break
-				}
-				value += s.payments[j].Amount
+			for _, payment := range payments {
+				summ += payment.Amount
 			}
-			mu.Lock()
-			sum += value
-			mu.Unlock()
-		}(i)
-
-		wg.Wait()
+		}(s.payments)
+	} else {
+		from := 0
+		count := len(s.payments) / goroutines
+		for i := 1; i <= goroutines; i++ {
+			wg.Add(1)
+			last := len(s.payments) - i*count
+			if i == goroutines {
+				last = 0
+			}
+			to := len(s.payments) - last
+			go func(payments []*types.Payment) {
+				defer wg.Done()
+				s := types.Money(0)
+				for _, payment := range payments {
+					s += payment.Amount
+				}
+				mu.Lock()
+				defer mu.Unlock()
+				summ += s
+			}(s.payments[from:to])
+			from += count
+		}
 	}
 
-	return sum
+	wg.Wait()
+
+	return summ
 }
 
-func (s *Service) FilterPayments(accountID int64, goroutines int) (payments []types.Payment, err error) {
+func (s *Service) FilterPayments(accountID int64, goroutines int) ([]types.Payment, error) {
+	filteredPayments := []types.Payment{}
 	wg := sync.WaitGroup{}
 	mu := sync.Mutex{}
+	if goroutines == 0 || goroutines == 1 {
+		wg.Add(1)
+		go func(payments []*types.Payment) {
+			defer wg.Done()
+			for _, payment := range payments {
+				if payment.AccountID == accountID {
+					filteredPayments = append(filteredPayments, types.Payment{
+						ID:        payment.ID,
+						AccountID: payment.AccountID,
+						Amount:    payment.Amount,
+						Category:  payment.Category,
+						Status:    payment.Status,
+					})
+				}
+			}
+		}(s.payments)
+	} else {
+		from := 0
+		count := len(s.payments) / goroutines
+		for i := 1; i <= goroutines; i++ {
+			wg.Add(1)
+			last := len(s.payments) - i*count
+			if i == goroutines {
+				last = 0
+			}
+			to := len(s.payments) - last
+			go func(payments []*types.Payment) {
+				defer wg.Done()
+				separetePayments := []types.Payment{}
+				for _, payment := range payments {
+					if payment.AccountID == accountID {
+						separetePayments = append(separetePayments, types.Payment{
+							ID:        payment.ID,
+							AccountID: payment.AccountID,
+							Amount:    payment.Amount,
+							Category:  payment.Category,
+							Status:    payment.Status,
+						})
+					}
+				}
+				mu.Lock()
+				defer mu.Unlock()
+				filteredPayments = append(filteredPayments, separetePayments...)
+			}(s.payments[from:to])
+			from += count
+		}
+	}
 
-	count := len(s.payments)/goroutines + 1
+	wg.Wait()
 
-	account, err := s.FindAccountByID(accountID)
-	if err != nil {
-		log.Println(err)
+	if len(filteredPayments) == 0 {
 		return nil, ErrAccountNotFound
 	}
 
-	for i := 0; i < goroutines; i++ {
-		wg.Add(1)
-
-		go func(val int) {
-			defer wg.Done()
-			var result []types.Payment
-
-			for j := val * count; j < (val+1)*count; j++ {
-				if j >= len(s.payments) {
-					j = (val + 1) * count
-					break
-				}
-
-				if s.payments[j].AccountID == account.ID {
-					payment := types.Payment{
-						ID:        s.payments[j].ID,
-						AccountID: s.payments[j].AccountID,
-						Amount:    s.payments[j].Amount,
-						Category:  s.payments[j].Category,
-						Status:    s.payments[j].Status,
-					}
-
-					result = append(result, payment)
-				}
-			}
-			mu.Lock()
-			payments = append(payments, result...)
-			mu.Unlock()
-		}(i)
-
-		wg.Wait()
-	}
-
-	return payments, nil
+	return filteredPayments, nil
 }
 
-func (s *Service) FilterPaymentsByFn(filter func(payment types.Payment) bool, goroutines int) (payments []types.Payment, err error) {
+func (s *Service) FilterPaymentsByFn(filter func(payment types.Payment) bool, goroutines int) ([]types.Payment, error) {
+	filteredPayments := []types.Payment{}
 	wg := sync.WaitGroup{}
 	mu := sync.Mutex{}
-
-	count := len(s.payments)/goroutines + 1
-
-	for i := 0; i < goroutines; i++ {
+	if goroutines == 0 || goroutines == 1 {
 		wg.Add(1)
-
-		go func(val int) {
-
+		go func(payments []*types.Payment) {
 			defer wg.Done()
-			var result []types.Payment
-
-			for j := val * count; j < (val+1)*count; j++ {
-				if j >= len(s.payments) {
-					j = (val + 1) * count
-					break
-				}
-
-				payment := types.Payment{
-					ID:        s.payments[j].ID,
-					AccountID: s.payments[j].AccountID,
-					Amount:    s.payments[j].Amount,
-					Category:  s.payments[j].Category,
-					Status:    s.payments[j].Status,
-				}
-
-				if filter(payment) {
-					result = append(result, payment)
+			for _, payment := range payments {
+				if filter(*payment) {
+					filteredPayments = append(filteredPayments, *payment)
 				}
 			}
-			mu.Lock()
-			payments = append(payments, result...)
-			mu.Unlock()
-		}(i)
-
-		wg.Wait()
+		}(s.payments)
+	} else {
+		from := 0
+		count := len(s.payments) / goroutines
+		for i := 1; i <= goroutines; i++ {
+			wg.Add(1)
+			last := len(s.payments) - i*count
+			if i == goroutines {
+				last = 0
+			}
+			to := len(s.payments) - last
+			go func(payments []*types.Payment) {
+				defer wg.Done()
+				separetePayments := []types.Payment{}
+				for _, payment := range payments {
+					if filter(*payment) {
+						separetePayments = append(separetePayments, *payment)
+					}
+				}
+				mu.Lock()
+				defer mu.Unlock()
+				filteredPayments = append(filteredPayments, separetePayments...)
+			}(s.payments[from:to])
+			from += count
+		}
 	}
 
-	return payments, nil
+	wg.Wait()
+
+	if len(filteredPayments) == 0 {
+		return nil, ErrAccountNotFound
+	}
+
+	return filteredPayments, nil
 }
 
 func (s *Service) SumPaymentsWithProgress() <-chan types.Progress {
