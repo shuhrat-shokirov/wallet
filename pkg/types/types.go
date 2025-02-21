@@ -47,4 +47,5 @@ type Card struct {
 	Balance  Money
 	Currency string
 	Number   string
+	PAN      string
 }
