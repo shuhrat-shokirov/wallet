@@ -40,3 +40,12 @@ type Progress struct {
 	Part   int
 	Result Money
 }
+
+type Card struct {
+	ID       int64
+	Issuer   string
+	Balance  Money
+	Currency string
+	Number   string
+	PAN      string
+}
