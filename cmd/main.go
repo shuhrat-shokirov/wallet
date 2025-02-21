@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	"github.com/shuhrat-shokirov/wallet/pkg/types"
 	"github.com/shuhrat-shokirov/wallet/pkg/wallet"
 )
 
@@ -28,4 +29,7 @@ func main() {
 	}
 
 	log.Println(s.FindAccountByID(1))
+}
+func withdraw(card types.Card) {
+
 }
